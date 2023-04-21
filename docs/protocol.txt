@@ -1,0 +1,357 @@
+
+From TTC8-0x user's manual:
+https://www.cisco.com/c/dam/en/us/td/docs/telepresence/endpoint/camera/precisionhd/user_guide/precisionhd_1080p-720p_camera_user_guide.pdf
+
+
+RS–232 Parameters
+At startup, the communication parameters for the RS–232
+interface must be set to:
+• 9600 bits per second
+• 8 data bits
+• No parity
+• 1 stop bit
+• No hardware flow control
+• No software flow control
+
+All of the RS–232 parameters except speed are fixed and not user configurable.
+The speed may be changed by issuing the Speed command defined on the following
+pages.
+
+All control bytes are pure binary information, i.e. the control bytes are not
+ASCII-encoded.
+
+VISCA message format
+
+A particular command is recognized by the message information after the address
+byte. Message format Commands are initiated from the host (i.e. the codec or
+any other external controller) to the camera. After a camera has been issued a
+command, the camera generates a response.
+
+Commands and responses (messages) have the following format:
+• Address byte (1)
+• Message bytes (1..14)
+• Terminator byte (1) See the illustration for details.
+
+Minimum length of any command or response is 3 bytes:
+1. Address byte (1): In this example there is one host, i.e. the codec (the
+host is the unit controlling the camera). The host has the address 0. The four
+least significant bits of the address byte contain the address of the receiver.
+In the case of a broadcast message, the receiver address must be set to 8. When
+we are operating a single camera, the address is 1. Hence, address bytes in
+messages from the host are 0x81, and messages from the camera to the host are
+0x90 (the protocol allows for up to 7 cameras).
+
+2. Message bytes (1..14): Any number of bytes containing the actual message
+information. Bytes may have any value in the range 0...254. The value 255 (i.e.
+hexadecimal FF) is reserved for the terminating byte.
+
+3. Terminator byte (1): All messages must be terminated with a byte containing
+all 1’s, i.e. decimal 255 (or hexadecimal FF).
+
+Command and response exchange
+
+When the camera receives a command, it responds with either:
+• Completion message: 90-5Y-FF Returned by camera when execution of commands
+and inquiries are completed.
+• Error packets: 90-6Y-..FF Returned by camera instead of a completion message
+when command or inquiry failed to be executed.
+• General error messages, unless otherwise specified:
+
+• 90-6Y-01-FF Message length error (>14 bytes)
+• 90-6Y-02-FF Syntax error
+• 90-6Y-03-FF Command buffer full
+• 90-6Y-04-FF Command cancelled
+• 90-6Y-05-FF No socket (to be cancelled)
+• 90-6Y-41-FF Command not executable
+• Y = socket number A camera may contain two buffers so that two commands,
+including the command being executed, can be received. NOTE: The PrecisionHD
+1080p camera supports a single socket only. Consequently, the Y always assumes
+the value Y = 0.
+
+-------------------
+Camera commands
+-------------------
+
+Power_On
+8x 01 04 00 02 ff
+Power control. This command stores the zoom and focus value and reset these
+motors. Used for PrecisionHD 720p if the camera has been on for a long time.
+NOTE: These commands do not power the camera on or off. They only reset the
+motors.
+
+Power_Off
+8x 01 04 00 03 ff
+
+Video_Format
+8x 01 35 0p 0q 0r ff
+Selects video format. p = reserved q = video mode. See the video format table:
+Video mode selection. r = Used in PrecisionHD 720p camera. Can be recycled.
+
+WB_Auto
+8x 01 04 35 00 ff
+WB: White Balance
+
+WB_Table_Manual
+8x 01 04 35 06 ff
+
+WB_Table_Direct
+8x 01 04 75 0p 0q 0r 0s ff
+Used if Wbmode = Table manual. If Wbmode is not Table manual, the table index
+is stored and used next time Table manual mode is entered.
+pqrs = wb table.
+
+AE_Auto
+8x 01 04 39 00 ff
+AE: Automatic Exposure.
+
+AE_Manual
+8x 01 04 39 03 ff
+
+Iris_Direct
+8x 01 04 4B 0p 0q 0r 0s ff
+Used if AE mode = Manual. pqrs: Iris position, range 0..50
+
+Gain_Direct
+8x 01 04 4c 0p 0q 0r 0s ff
+Used if AE mode = Manual. pqrs: Gain position, values: 12-21dB.
+
+Backlight_On
+8x 01 04 33 02 ff
+BacklightCompensation mode
+
+Backlight_Off
+8x 01 04 33 03 ff
+
+Mirror_On
+8x 01 04 61 02 ff
+Sony calls this CAM_LR_Reverse. RR (FT/AT mirror command).
+
+Mirror_Off
+8x 01 04 61 03 ff
+The “xConfiguration Cameras Camera [1..n] Mirror: Auto” (supported by the Codec
+C series) does not apply to the PrecisionHD 1080p 4x.
+
+Flip_On
+8x 01 04 66 02 ff
+Sony calls this CAM_ImgFlip.
+
+Flip_Off
+8x 01 04 66 03 ff
+The “xConfiguration Cameras Camera [1..n] Flip: Auto” (supported by the Codec
+C series) does not apply to the PrecisionHD 1080p 4x.
+
+Gamma_Auto
+8x 01 04 51 02 ff
+Gamma mode. Default uses gamma table 4.
+
+Gamma_Manual
+8x 01 04 51 03 ff
+
+Gamma_Direct
+8x 01 04 52 0p 0q 0r 0s ff
+pqrs: Gamma table to use in manual mode. Range 0-7.
+
+MM_Detect_On
+8x 01 50 30 01 ff
+Turn on the Motor Moved Detection. The camera recalibrates if touched.
+
+MM_Detect_Off
+8x 01 50 30 00 ff
+Turn off the Motor Moved Detection. The camera does not recalibrate if touched.
+
+Call_LED_On
+8x 01 33 01 01 ff
+Refers to the LED on top of the camera. It is always off on startup.
+
+Call_LED_Off
+8x 01 33 01 00 ff
+
+Call_LED_Blink
+8x 01 33 01 02 ff
+
+Power_LED_On
+8x 01 33 02 01 ff
+Green power LED. If switched to off and stored to startup profile, it is always
+off.
+
+Power_LED_Off
+8x 01 33 02 00 ff
+
+---------------
+PTZF - movement commands
+---------------
+
+Zoom_Stop
+8x 01 04 07 00 ff
+
+Zoom_Tele
+8x 01 04 07 2p ff
+p = speed parameter, a (low) to b (high)
+
+Zoom_Wide
+8x 01 04 07 3p ff
+
+Zoom_Direct
+8x 01 04 47 0p 0q 0r 0s ff
+pqrs: zoom position
+
+ZoomFocus_Direct
+8x 01 04 47 0p 0q 0r
+pqrs: zoom position 0s 0t 0u 0v 0w ff tuvw: focus position
+
+Focus_Stop
+8x 01 04 08 00 ff
+
+Focus_Far
+8x 01 04 08 2p ff
+p = speed parameter, a (low) to b (high)
+
+Focus_Near
+8x 01 04 08 3p ff
+
+Focus_Direct
+8x 01 04 48 0p 0q 0r 0s ff
+pqrs: focus position
+
+Focus_Auto
+8x 01 04 38 02 ff
+Autofocus mode on/off. NOTE: If the mode is on auto, camera may disable
+autofocus when focus is ok. Autofocus is turned back on when camera is moved
+using Zoom_Tele/ Wide, PT_Up/Down/Left/Right. This also applies for
+IR_CameraControl movement.
+
+Focus_Manual
+8x 01 04 38 03 ff
+
+PT_Stop
+8x 01 06 01 03 03 03 03 ff
+
+PT_Reset
+8x 01 06 05 ff
+Reset pan/tilt to center position. This also re–synchronizes the motors.
+
+PT_Up
+8x 01 06 01 0p 0t 03 01 ff
+p pan speed t: tilt speed
+
+PT_Down
+8x 01 06 01 0p 0t 03 02 ff
+Right -> increment pan
+
+PT_Left
+8x 01 06 01 0p 0t 01 03 ff
+Left -> decrement pan
+
+PT_Right
+8x 01 06 01 0p 0t 02 03 ff
+Up -> increment tilt
+
+PT_UpLeft
+8x 01 06 01 0p 0t 01 01 ff
+Down -> decrement tilt
+
+PT_UpRight
+8x 01 06 01 0p 0t 02 01 ff
+
+PT_DownLeft
+8x 01 06 01 0p 0t 01 02 ff
+
+PT_DownRight
+8x 01 06 01 0p 0t 02 02 ff
+
+PT_Direct
+8x 01 06 02 0p 0t 0q 0r 0s
+p: max pan speed 0u 0v 0w 0x 0y ff t: max tilt speed qrsu: pan position vwxy:
+tilt position Attempts to linearize movement.
+
+PTZF_Direct
+8x 01 06 20 0p 0q 0r 0s 0t
+Sets all motors in one operation. 0u 0v 0w 0x 0y 0z 0g 0h 0i pqrs: pan 0j 0k ff
+tuvw: tilt xyzg: zoom hijk: focus Attempts to linearize movement for pan and
+tilt. The focus value will not be used if the camera is in continuous autofocus
+mode. NOTE: Never route this message through Sony cameras.
+
+---------------
+Inquiries
+-----------------
+
+CAM_ID_Inq
+8x 09 04 22 ff
+Resp: 90 50 zz xx 00 yy ff Only zz, which identifies the camera, is relevant.
+zz = 0x50 for this camera.
+
+CAM_SWID_Inq
+8x 09 04 23 ff
+Resp: y0 50 [1-125 bytes ASCII SWID] ff. Never route this message through Sony
+cameras.
+
+CAM_HWID_Inq
+8x 09 04 24 ff
+The response is the Module Serial Number stored in EEPROM. The number is
+converted to ASCII : y0 50 [12 bytes ASCII HWID] ff.
+
+Zoom_Pos_Inq
+8x 09 04 47 ff
+Resp: y0 50 0p 0q 0r 0s ff pqrs: zoom position
+
+Focus_Pos_Inq
+8x 09 04 48 ff
+Resp: y0 50 0p 0q 0r 0s ff pqrs: focus position
+
+Focus_Mode_Inq
+8x 09 04 38 ff
+Resp: y0 50 0p ff p=2: Auto, p=3: Manual
+
+PanTilt_Pos_Inq
+8x 09 06 12 ff
+Resp: y0 50 0p 0q 0r 0s 0t 0u 0v 0w ff pqrs: pan position tuvw: tilt position
+
+Power_Inq
+8x 09 04 00 ff
+Resp: y0 50 0p ff p=2: On, p=3: Off
+
+WB_Mode_Inq
+8x 09 04 35 ff
+Resp: y0 50 0p ff p=0: Auto , p=6: Table manual
+
+WB_Table_Inq
+8x 09 04 75 ff
+Resp: y0 50 0p 0q 0r 0s ff pqrs: Table used if table mode is on.
+
+AE_Mode_Inq
+8x 09 04 39 ff
+Resp: y0 50 0p ff p=0: Auto, p=3: Manual
+
+Backlight_Mode_Inq
+8x 09 04 33 ff
+Resp: y0 50 0p ff p=2: On, p=3: Off, p=4: Auto
+
+Auto Mirror_Inq
+8x 09 04 61 ff
+Resp: y0 50 0p ff p=2: On, p=3: Off
+
+Flip_Inq
+8x 09 04 66 ff
+Whether the video is flipped or not.
+Resp: y0 50 0p ff p=2: On , p=3: Off
+
+Gamma_Mode_Inq
+8x 09 04 51 ff
+Resp: y0 50 0p ff p=2: Auto, p=3: Manual
+
+Gamma_Table_Inq
+8x 09 04 52 ff
+Resp: y0 50 0p 0q 0r 0s ff pqrs: Gamma table in use if on manual mode.
+
+Call_LED_Inq
+8x 09 01 33 01 ff
+Resp: y0 50 0p ff p=2: On, p=3: Off, p=4: Blink
+
+Power_LED_Inq
+8x 09 01 33 02 ff
+Resp: y0 50 0p ff p=2: On, p=3: Off
+
+Video_System_Inq
+8x 09 06 23 ff y0 50 0p 0q 0r 0s ff
+pqrs=video mode currently being output on the HDMI port. See chapter on DIP
+switches.
