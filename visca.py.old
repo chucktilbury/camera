@@ -109,11 +109,11 @@ class Camera:
         return hex(self.byte_to_int(byte))
 
     # for consistency
-    def print_msg(self, msg):
+    def print_resp(self, resp):
         '''
         Internal use only.
         '''
-        print(':'.join([self.byte_to_hex(x) for x in msg]))
+        print(':'.join([self.byte_to_hex(x) for x in resp]))
 
     # Decode a word in a message received from the camera and return is as an
     # integer.
@@ -134,16 +134,6 @@ class Camera:
         '''
         Internal use only.
         '''
-        mask = 0xF000
-        idx = 12
-        value = value & 0xFFFF
-
-        for i in range(index, index+4):
-            val = (value & mask) >> idx
-            message[i] = val.to_bytes(1, 'little')
-            mask = mask >> 4
-            idx -= 4
-
         return message
 
     # Decode a short (16 bits) in a message received from the camera and return is as an
@@ -152,22 +142,13 @@ class Camera:
         '''
         Internal use only.
         '''
-        val = 0
-        shift = 4
-        for x in message[index:index+2]:
-            val |= (self.byte_to_int(x) << shift)
-            shift -= 4
-
-        return val
+        return 0
 
     # Encode a short (16 bits) in a message from an integer.
     def encode_short(self, message, value, index=4):
         '''
         Internal use only.
         '''
-        for i in range(index, index+2):
-            message[i] = value.to_bytes(1, 'little')
-
         return message
 
     # Decode a byte from the given response.
@@ -254,7 +235,6 @@ class Camera:
         self.device = device
         self.link = serial.Serial(device, timeout=timeout)
         self.reset()
-        time.sleep(1)
 
     def close(self):
         '''
@@ -304,7 +284,7 @@ class Camera:
 
         return self.focus_mode
 
-    def get_pos(self):
+    def get_pan_tilt_pos(self):
         '''
         Get the pan and tilt position. Returns a dict where
         {"pan": int, "tilt": int}
@@ -382,6 +362,37 @@ class Camera:
 
         return self.ae_mode
 
+    def get_shutter_pos(self):
+        '''
+        Resp: y0 50 00 00 0p 0q FF
+        '''
+        data = [b'\x81', b'\x09', b'\x04', b'\x4A', b'\xFF']
+        resp = self.send_message(data)
+        return self.decode_short(resp, index=4)
+
+    def get_iris_pos(self):
+        '''
+        Resp: y0 50 00 00 0p 0q FF
+        '''
+        data = [b'\x81', b'\x09', b'\x04', b'\x4B', b'\xFF']
+        resp = self.send_message(data)
+        return self.decode_short(resp, index=4)
+
+    def get_gain_pos(self):
+        '''
+        Resp: y0 50 00 00 0p 0q FF
+        '''
+        data = [b'\x81', b'\x09', b'\x04', b'\x4C', b'\xFF']
+        resp = self.send_message(data)
+        return self.decode_short(resp, index=4)
+
+    def get_bright_pos(self):
+        '''
+        Resp: y0 50 00 00 0p 0q FF
+        '''
+        data = [b'\x81', b'\x09', b'\x04', b'\x4D', b'\xFF']
+        resp = self.send_message(data)
+        return self.decode_short(resp, index=4)
 
     ################################################
     # Command the camera to do something
@@ -392,146 +403,12 @@ class Camera:
         '''
         data = [b'\x81', b'\x01', b'\x06', b'\x05', b'\xff']
         self.send_message(data)
-        time.sleep(2)
+        time.sleep(1)
 
-    def move_up(self, pan, tilt):
+    def clear(self):
         '''
-        Set the speed when the camera moves up
-        8x 01 06 01 vv ww 03 01 FF
-        vv = pan speed 01 - 18
-        ww = tilt speed 01 - 18
+        Cancel any outstanding commands and clear the camera buffers.
         '''
-        data = [b'\x81', b'\x01', b'\x06', b'\x01',
-                b'\x01', b'\x01', b'\x03', b'\x01', b'\xFF']
-        self.encode_byte(data, pan, 4)
-        self.encode_byte(data, tilt, 5)
+        data = [b'\x81', b'\x01', b'\x00', b'\x01', b'\xff']
         self.send_message(data)
-
-    def move_down(self, pan, tilt)        :
-        '''
-        Set the speed when the camera moves down
-        8x 01 06 01 vv ww 03 01 FF
-        vv = pan speed 01 - 18
-        ww = tilt speed 01 - 18
-        '''
-        data = [b'\x81', b'\x01', b'\x06', b'\x01',
-                b'\x01', b'\x01', b'\x03', b'\x02', b'\xFF']
-        self.encode_byte(data, pan, 4)
-        self.encode_byte(data, tilt, 5)
-        self.send_message(data)
-
-    def move_left(self, pan, tilt):
-        '''
-        Set the speed when the camera moves left
-        8x 01 06 01 vv ww 03 01 FF
-        vv = pan speed 01 - 18
-        ww = tilt speed 01 - 18
-        '''
-        data = [b'\x81', b'\x01', b'\x06', b'\x01',
-                b'\x01', b'\x01', b'\x01', b'\x03', b'\xFF']
-        self.encode_byte(data, pan, 4)
-        self.encode_byte(data, tilt, 5)
-        self.send_message(data)
-
-    def move_right(self, pan, tilt):
-        '''
-        Set the speed when the camera moves right
-        8x 01 06 01 vv ww 03 01 FF
-        vv = pan speed 01 - 18
-        ww = tilt speed 01 - 18
-        '''
-        data = [b'\x81', b'\x01', b'\x06', b'\x01',
-                b'\x01', b'\x01', b'\x02', b'\x03', b'\xFF']
-        self.encode_byte(data, pan, 4)
-        self.encode_byte(data, tilt, 5)
-        self.send_message(data)
-
-    def move_upleft(self, pan, tilt):
-        '''
-        Set the speed when the camera moves up left
-        8x 01 06 01 vv ww 03 01 FF
-        vv = pan speed 01 - 18
-        ww = tilt speed 01 - 18
-        '''
-        data = [b'\x81', b'\x01', b'\x06', b'\x01',
-                b'\x01', b'\x01', b'\x01', b'\x01', b'\xFF']
-        self.encode_byte(data, pan, 4)
-        self.encode_byte(data, tilt, 5)
-        self.send_message(data)
-
-    def move_upright(self, pan, tilt):
-        '''
-        Set the speed when the camera moves up right
-        8x 01 06 01 vv ww 03 01 FF
-        vv = pan speed 01 - 18
-        ww = tilt speed 01 - 18
-        '''
-        data = [b'\x81', b'\x01', b'\x06', b'\x01',
-                b'\x01', b'\x01', b'\x02', b'\x01', b'\xFF']
-        self.encode_byte(data, pan, 4)
-        self.encode_byte(data, tilt, 5)
-        self.send_message(data)
-
-    def move_downleft(self, pan, tilt)       :
-        '''
-        Set the speed when the camera moves down left
-        8x 01 06 01 vv ww 03 01 FF
-        vv = pan speed 01 - 18
-        ww = tilt speed 01 - 18
-        '''
-        data = [b'\x81', b'\x01', b'\x06', b'\x01',
-                b'\x01', b'\x01', b'\x01', b'\x02', b'\xFF']
-        self.encode_byte(data, pan, 4)
-        self.encode_byte(data, tilt, 5)
-        self.send_message(data)
-
-    def move_downright(self, pan, tilt):
-        '''
-        Set the speed when the camera moves down right
-        8x 01 06 01 vv ww 03 01 FF
-        vv = pan speed 01 - 18
-        ww = tilt speed 01 - 18
-        '''
-        data = [b'\x81', b'\x01', b'\x06', b'\x01',
-                b'\x01', b'\x01', b'\x02', b'\x02', b'\xFF']
-        self.encode_byte(data, pan, 4)
-        self.encode_byte(data, tilt, 5)
-        self.send_message(data)
-
-    def move_stop(self):
-        '''
-        Set the stop speed
-        8x 01 06 01 vv ww 03 03 FF
-        vv = pan speed 01 - 18
-        ww = tilt speed 01 - 18
-        '''
-        data = [b'\x81', b'\x01', b'\x06', b'\x01',
-                b'\x01', b'\x01', b'\x03', b'\x03', b'\xFF']
-        self.encode_byte(data, pan, 4)
-        self.encode_byte(data, tilt, 5)
-        self.send_message(data)
-
-    def set_pos(self, pspeed, tspeed, pan, tilt):
-        '''
-        Set the absolute position of the camera.
-
-        8x 01 06 02 0p 0t 0x 0x 0x 0x 0y 0y 0y 0y ff
-        p = pan speed (01 - 1f)
-        t = pan speed (01 - 1f)
-        xxxx = pan position 0 = left & 816 = right
-        yyyy = tilt position 0 = up & 89 = down
-        '''
-        data = [b'\x81', b'\x01', b'\x06', b'\x02',
-                b'\x00', b'\x00',
-                b'\x00', b'\x00', b'\x00', b'\x00',
-                b'\x00', b'\x00', b'\x00', b'\x00',
-                b'\xff']
-
-        self.encode_byte(data, pspeed, 4)
-        self.encode_byte(data, tspeed, 5)
-        self.encode_word(data, pan, 6)
-        self.encode_word(data, tilt, 10)
-        #self.print_msg(data)
-        self.send_message(data)
-
-
+        time.sleep(1)
