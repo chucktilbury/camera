@@ -4,9 +4,9 @@
 import serial
 import time
 
-# TODO:
-#   get/set common fields in packets
-#   exception class
+SPEED = 0x1f
+RESP_DELAY = 0.75
+MSG_DELAY = 0.5
 
 # exception thrown when error = 0x01
 class CameraMessageLengthError(Exception):
@@ -194,9 +194,12 @@ class Camera:
             self.link.write(b)
 
         # Give the camera a little time to react.
-        time.sleep(0.25)
+        time.sleep(RESP_DELAY)
 
-        return self.check_error()
+        retv = self.check_error()
+        time.sleep(MSG_DELAY)
+
+        return retv
 
 
     # Receive bytes from the serial port into an array. Return the raw
@@ -253,17 +256,25 @@ class Camera:
         '''
         self.device = device
         self.link = serial.Serial(device, timeout=timeout)
+        time.sleep(1)
         self.reset()
         time.sleep(1)
 
-    def close(self):
+    def __del__(self):
         '''
-        Close the serial link.
+        Destroy the camera object.
         '''
+        #self.reboot()
         self.link.close()
 
+    def reboot(self):
+        '''
+        Reboot the camera and reset all parameters
+        '''
+        data = [b'\x81', b'\x01', b'\x42', b'\xff']
+        self.send_message(data)
 
-    def get_zoom_pos(self):
+    def get_zoom(self):
         '''
         Get the current zoom position.
 
@@ -382,6 +393,15 @@ class Camera:
 
         return self.ae_mode
 
+    def get_status(self):
+        '''
+        Return a dictionary with pan, tilt, and zoom values.
+        '''
+        val = self.get_pos()
+        val['zoom'] = self.get_zoom()
+
+        return val
+
 
     ################################################
     # Command the camera to do something
@@ -394,12 +414,38 @@ class Camera:
         self.send_message(data)
         time.sleep(2)
 
-    def move_up(self, pan, tilt):
+    def zoom_in(self):
         '''
-        Set the speed when the camera moves up
+        Zoom in to the maximum extent
+
+        8x 01 04 07 2p ff
+        p = speed parameter, a (low) to b (high)
+
+        max zoom = 2885
+        '''
+        data = [b'\x81', b'\x01', b'\x04', b'\x07', b'\x2f', b'\xff']
+        self.send_message(data)
+
+    def zoom_out(self):
+        '''
+        Zoom out to the maximum extent
+
+        8x 01 04 07 3p ff
+        p = speed parameter, a (low) to b (high)
+
+        min zoom = 0
+        '''
+        data = [b'\x81', b'\x01', b'\x04', b'\x07', b'\x3f', b'\xff']
+        self.send_message(data)
+
+    def move_up(self, pan=SPEED, tilt=SPEED):
+        '''
+        Set the speed when the camera moves up and move it to the limit.
         8x 01 06 01 vv ww 03 01 FF
         vv = pan speed 01 - 18
         ww = tilt speed 01 - 18
+
+        max tilt = 210
         '''
         data = [b'\x81', b'\x01', b'\x06', b'\x01',
                 b'\x01', b'\x01', b'\x03', b'\x01', b'\xFF']
@@ -407,12 +453,14 @@ class Camera:
         self.encode_byte(data, tilt, 5)
         self.send_message(data)
 
-    def move_down(self, pan, tilt)        :
+    def move_down(self, pan=SPEED, tilt=SPEED)        :
         '''
-        Set the speed when the camera moves down
+        Set the speed when the camera moves down and move it to the limit.
         8x 01 06 01 vv ww 03 01 FF
         vv = pan speed 01 - 18
         ww = tilt speed 01 - 18
+
+        min tilt = 0
         '''
         data = [b'\x81', b'\x01', b'\x06', b'\x01',
                 b'\x01', b'\x01', b'\x03', b'\x02', b'\xFF']
@@ -420,12 +468,14 @@ class Camera:
         self.encode_byte(data, tilt, 5)
         self.send_message(data)
 
-    def move_left(self, pan, tilt):
+    def move_left(self, pan=SPEED, tilt=SPEED):
         '''
-        Set the speed when the camera moves left
+        Set the speed when the camera moves left and move it to the limit.
         8x 01 06 01 vv ww 03 01 FF
         vv = pan speed 01 - 18
         ww = tilt speed 01 - 18
+
+        min pan = 0
         '''
         data = [b'\x81', b'\x01', b'\x06', b'\x01',
                 b'\x01', b'\x01', b'\x01', b'\x03', b'\xFF']
@@ -433,12 +483,14 @@ class Camera:
         self.encode_byte(data, tilt, 5)
         self.send_message(data)
 
-    def move_right(self, pan, tilt):
+    def move_right(self, pan=SPEED, tilt=SPEED):
         '''
-        Set the speed when the camera moves right
+        Set the speed when the camera moves right and move it to the limit.
         8x 01 06 01 vv ww 03 01 FF
         vv = pan speed 01 - 18
         ww = tilt speed 01 - 18
+
+        max pan = 817
         '''
         data = [b'\x81', b'\x01', b'\x06', b'\x01',
                 b'\x01', b'\x01', b'\x02', b'\x03', b'\xFF']
@@ -446,9 +498,9 @@ class Camera:
         self.encode_byte(data, tilt, 5)
         self.send_message(data)
 
-    def move_upleft(self, pan, tilt):
+    def move_upleft(self, pan=SPEED, tilt=SPEED):
         '''
-        Set the speed when the camera moves up left
+        Set the speed when the camera moves up left and move it to the limit.
         8x 01 06 01 vv ww 03 01 FF
         vv = pan speed 01 - 18
         ww = tilt speed 01 - 18
@@ -459,9 +511,9 @@ class Camera:
         self.encode_byte(data, tilt, 5)
         self.send_message(data)
 
-    def move_upright(self, pan, tilt):
+    def move_upright(self, pan=SPEED, tilt=SPEED):
         '''
-        Set the speed when the camera moves up right
+        Set the speed when the camera moves up right and move it to the limit.
         8x 01 06 01 vv ww 03 01 FF
         vv = pan speed 01 - 18
         ww = tilt speed 01 - 18
@@ -472,9 +524,9 @@ class Camera:
         self.encode_byte(data, tilt, 5)
         self.send_message(data)
 
-    def move_downleft(self, pan, tilt)       :
+    def move_downleft(self, pan=SPEED, tilt=SPEED)       :
         '''
-        Set the speed when the camera moves down left
+        Set the speed when the camera moves down left and move it to the limit.
         8x 01 06 01 vv ww 03 01 FF
         vv = pan speed 01 - 18
         ww = tilt speed 01 - 18
@@ -485,9 +537,9 @@ class Camera:
         self.encode_byte(data, tilt, 5)
         self.send_message(data)
 
-    def move_downright(self, pan, tilt):
+    def move_downright(self, pan=SPEED, tilt=SPEED):
         '''
-        Set the speed when the camera moves down right
+        Set the speed when the camera moves down right and move it to the limit.
         8x 01 06 01 vv ww 03 01 FF
         vv = pan speed 01 - 18
         ww = tilt speed 01 - 18
@@ -511,7 +563,7 @@ class Camera:
         self.encode_byte(data, tilt, 5)
         self.send_message(data)
 
-    def set_pos(self, pspeed, tspeed, pan, tilt):
+    def set_pos(self, pan, tilt, pspeed=SPEED, tspeed=SPEED):
         '''
         Set the absolute position of the camera.
 
@@ -534,4 +586,15 @@ class Camera:
         #self.print_msg(data)
         self.send_message(data)
 
+    def set_zoom(self, val):
+        '''
+        Set the zoom position
+
+        8x 01 04 47 0p 0q 0r 0s ff
+        '''
+        data = [b'\x81', b'\x01', b'\x04', b'\x47',
+                b'\x00', b'\x00', b'\x00', b'\x00',
+                b'\xff']
+        self.encode_word(data, val, 4)
+        self.send_message(data)
 
