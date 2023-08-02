@@ -1,24 +1,88 @@
 import pickle
 from pprint import pprint as pp
-import time, os
+import time, os, sys
 
+DEFAULT_CFG_FILE='camera.cfg'
+DEFAULT_CFG_NAME='Default Config'
+DEFAULT_CFG_PORT='/dev/ttyUSB0'
 
 class Config:
     '''
     This class represents the state of the preset configuration file.
     '''
 
-    def __init__(self, fname):
-        self.fname = fname
-        self.data = {}
-        self.data['presets'] = {}
+    def __init__(self, fname=None):
+        self.fname = self.find_config(fname)
 
-        # make sure file exists....
-        if os.path.exists(self.fname):
+        if not self.fname is None:
             self.load()
         else:
-            self.save()
-            self.load()
+            self.create_default_config()
+
+        # make sure file exists....
+        #if os.path.exists(self.fname):
+        #    self.load()
+        #else:
+        #    self.save()
+        #    self.load()
+
+    def create_default_config(self):
+        '''
+        Create a default configuration. It is not permissable for the camera
+        app to begin without a valid configuration.
+        '''
+        # create the default config file in the same directory as the
+        # executable.
+        self.fname = os.path.join(
+            os.path.abspath(
+                os.path.dirname(sys.argv[0])), DEFAULT_CFG_FILE)
+
+        self.data = {}
+        self.data['cam_name'] = DEFAULT_CFG_NAME
+        self.data['cam_port'] = DEFAULT_CFG_PORT
+        self.data['presets'] = {}
+        self.data['presets']['default'] = {}
+        self.data['presets']['default']['pan'] = 400
+        self.data['presets']['default']['tilt'] = 220
+        self.data['presets']['default']['zoom'] = 0
+        self.save()
+        self.load()
+
+    def find_config(self, name):
+        '''
+        Find a valid configuration file. If no valid file is found, then return
+        None.
+        '''
+        if name is None:
+            name = DEFAULT_CFG_FILE
+
+        # check for an absolute path
+        if os.path.isfile(name):
+            return name
+
+        # check in the current directory
+        p = os.path.abspath('.')
+        if os.path.isfile(os.path.join(p, name)):
+            return os.path.join(p, name)
+
+        # check in the same directory as the executable
+        p = os.path.abspath(os.path.dirname(sys.argv[0]))
+        if os.path.isfile(os.path.join(p, name)):
+            return os.path.join(p, name)
+
+        # check in the previous dir from where the executable is located
+        if os.path.isfile(os.path.join(p, name)):
+            return os.path.join(p, name)
+
+        for root, dirs, files in os.walk(p):
+            for s in dirs:
+                pat = os.path.abspath(s)
+                if os.path.isfile(os.path.join(pat, name)):
+                    return os.path.join(pat, name)
+
+        # could not be found
+        return None
+
 
     def save(self):
         '''
@@ -31,6 +95,7 @@ class Config:
         '''
         Read the state of the configuration from the file.
         '''
+        print("loading:", self.fname)
         with open(self.fname, "rb") as fh:
             self.data = pickle.load(fh)
 

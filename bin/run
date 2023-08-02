@@ -5,4 +5,12 @@ if [ -z $PROJECT ]; then
     exit
 fi
 
-$PROJECT/bin/camera
+if [ -f $PROJECT/bin/camera ]; then
+    $PROJECT/bin/camera $@
+else
+    $PROJECT/bin/build && $PROJECT/bin/camera $@
+fi
+
+
+
+
