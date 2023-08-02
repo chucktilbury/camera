@@ -6,6 +6,14 @@ DEFAULT_CFG_FILE='camera.cfg'
 DEFAULT_CFG_NAME='Default Config'
 DEFAULT_CFG_PORT='/dev/ttyUSB0'
 
+class ConfigError(Exception):
+
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __str__(self):
+        return "Config Error: " + self.msg
+
 class Config:
     '''
     This class represents the state of the preset configuration file.
@@ -17,7 +25,7 @@ class Config:
         if not self.fname is None:
             self.load()
         else:
-            self.create_default_config()
+            raise ConfigError("Cannot find a configuration file to load")
 
         # make sure file exists....
         #if os.path.exists(self.fname):
@@ -65,6 +73,13 @@ class Config:
         if os.path.isfile(os.path.join(p, name)):
             return os.path.join(p, name)
 
+        # walk the current directory
+        for root, dirs, files in os.walk(p):
+            for s in dirs:
+                pat = os.path.abspath(s)
+                if os.path.isfile(os.path.join(pat, name)):
+                    return os.path.join(pat, name)
+
         # check in the same directory as the executable
         p = os.path.abspath(os.path.dirname(sys.argv[0]))
         if os.path.isfile(os.path.join(p, name)):
@@ -74,6 +89,7 @@ class Config:
         if os.path.isfile(os.path.join(p, name)):
             return os.path.join(p, name)
 
+        # Walk the previous directory
         for root, dirs, files in os.walk(p):
             for s in dirs:
                 pat = os.path.abspath(s)
@@ -81,23 +97,29 @@ class Config:
                     return os.path.join(pat, name)
 
         # could not be found
-        return None
+        raise ConfigError('Cannot find any config file')
 
 
     def save(self):
         '''
         Save the state of the configuration to the file.
         '''
-        with open(self.fname, "wb") as fh:
-            pickle.dump(self.data, fh)
+        try:
+            with open(self.fname, "wb") as fh:
+                pickle.dump(self.data, fh)
+        except FileNotFoundError as e:
+            raise ConfigError("Cannot save configuration file: "+e)
 
     def load(self):
         '''
         Read the state of the configuration from the file.
         '''
-        print("loading:", self.fname)
-        with open(self.fname, "rb") as fh:
-            self.data = pickle.load(fh)
+        try:
+            print("loading:", self.fname)
+            with open(self.fname, "rb") as fh:
+                self.data = pickle.load(fh)
+        except FileNotFoundError as e:
+            raise ConfigError("Cannot load configuration file: "+e)
 
     def go_preset(self, name, cam):
         '''

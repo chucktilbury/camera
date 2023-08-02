@@ -6,6 +6,6 @@ if [ -z $PROJECT ]; then
 fi
 
 rm -f $PROJECT/bin/camera
-pyinstaller $PROJECT/src/camera.py
+pyinstaller --clean --strip --noconfirm --name camera $PROJECT/src/app.py
 ln -s $PROJECT/dist/$PROJ_NAME/$PROJ_NAME $PROJECT/bin/$PROJ_NAME
 
