@@ -1,0 +1,8 @@
+#! /usr/bin/env bash
+export PROJECT=`pwd`
+if [ ! -f bin/activate ]; then
+    bin/create
+fi
+
+bash --rcfile $PROJECT/bin/rcfile
+stty sane

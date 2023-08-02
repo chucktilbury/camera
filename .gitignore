@@ -1,4 +1,11 @@
 *.pickle
+bin/easy*
+bin/activate*
+bin/pip*
+bin/wheel*
+bin/python*
+bin/flask*
+pyvenv.cfg
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

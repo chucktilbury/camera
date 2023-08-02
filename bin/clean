@@ -1,0 +1,4 @@
+#! /usr/bin/env bash
+
+rm -rf bin/easy* bin/activate* bin/pip* bin/wheel* bin/python* bin/flask*
+rm -rf pyvenv.cfg build/ dist/ lib/ __pycache__/ src/__pycache__/
