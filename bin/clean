@@ -9,4 +9,4 @@ rm -rf $PROJECT/bin/easy* $PROJECT/bin/activate* $PROJECT/bin/pip*
 rm -rf $PROJECT/bin/wheel* $PROJECT/bin/python* $PROJECT/bin/flask*
 rm -rf $PROJECT/pyvenv.cfg $PROJECT/build/ $PROJECT/dist/ $PROJECT/lib/
 rm -rf $PROJECT/__pycache__/ $PROJECT/src/__pycache__/ $PROJECT/bin/camera
-rm -rf $PROJECT/camera.spec
+rm -rf $PROJECT/camera.spec $PROJECT/bin/pyserial* $PROJECT/bin/pyinstall*
