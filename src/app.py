@@ -1,22 +1,34 @@
 #!/usr/bin/env python3
-from camera import Camera
 import tkinter as tk
-import time
+import time, os, sys
+from camera import Camera
 from config import Config
-import os, sys
 
-pst = Config('camera.cfg')
-cam = Camera(device=pst.get_cam_port())
-pst.go_preset("default", cam)
+class Application:
 
-pst.go_preset("test 1", cam)
-#time.sleep(5)
-#pst.go_preset("test preset 2", cam)
-#time.sleep(5)
-#pst.go_preset("test preset 3", cam)
+    def __init__(self):
 
-app = tk.Tk()
-app.title("Camera Presets")
-app.geometry('350x450')
-app.mainloop()
+        self.cfg = Config('camera.cfg')
+        self.cam = Camera(device=self.cfg.get_cam_port())
+
+        self.app = tk.Tk()
+        self.app.title("Camera Presets")
+        self.app.geometry('350x450')
+
+    def run(self):
+        self.app.mainloop()
+
+    def do_preset(self, name):
+        self.cfg.go_preset(name, self.cam)
+        time.sleep(1)
+
+if __name__ == '__main__':
+
+    app = Application()
+
+    app.do_preset("default")
+    app.do_preset("test 1")
+
+    app.run()
+
 

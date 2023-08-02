@@ -1,6 +1,6 @@
 import pickle
 from pprint import pprint as pp
-import time, os, sys
+import os, sys
 
 DEFAULT_CFG_FILE='camera.cfg'
 DEFAULT_CFG_NAME='Default Config'
@@ -22,17 +22,10 @@ class Config:
     def __init__(self, fname=None):
         self.fname = self.find_config(fname)
 
-        if not self.fname is None:
+        try:
             self.load()
-        else:
-            raise ConfigError("Cannot find a configuration file to load")
-
-        # make sure file exists....
-        #if os.path.exists(self.fname):
-        #    self.load()
-        #else:
-        #    self.save()
-        #    self.load()
+        except Exception as e:
+            raise ConfigError("Cannot load a configuration file")
 
     def create_default_config(self):
         '''
@@ -120,6 +113,8 @@ class Config:
                 self.data = pickle.load(fh)
         except FileNotFoundError as e:
             raise ConfigError("Cannot load configuration file: "+e)
+        except pickle.UnpicklingError as e:
+            raise ConfigError("Invalid configuration file: "+str(e))
 
     def go_preset(self, name, cam):
         '''
@@ -128,7 +123,6 @@ class Config:
         pset = self.get_preset(name)
         cam.set_pos(pset['pan'], pset['tilt'])
         cam.set_zoom(pset['zoom'])
-        time.sleep(1)
 
     def set_cam_name(self, name):
         '''
