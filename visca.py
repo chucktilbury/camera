@@ -7,6 +7,10 @@ import time
 SPEED = 0x1f
 RESP_DELAY = 0.75
 MSG_DELAY = 0.5
+'''
+Need to do something about the situation where the value of an input exceeds the
+maximum allowable value.
+'''
 
 # exception thrown when error = 0x01
 class CameraMessageLengthError(Exception):

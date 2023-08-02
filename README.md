@@ -5,17 +5,20 @@ Simple library to drive a single TTC8-0x camera over a serial port. This applica
 When a preset is added or modified, it is added to a pickle file that is native to Python. The data structure looks like this:
 
 ```{python}
-pds = {
+preset_data_structure = {
     "port": "string", # the serial port the camera is connected to
     "name": "string", # the name of the camera
-    [{  # list of presets
-        "name": "string",   # name of the preset
-        "pan": number,      # pan value
-        "tilt": number,     # tilt value
-        "zoom": number,     # zoom value
+    "presets": {    # dictionary of presets
+        "name": {   # the preset name as the index
+            "pan": number,  # pan value
+            "tilt": number, # tilt value
+            "zoom": number, # zoom value
         },
         ...
-        {...}]
+        "name": {
+            ...
+        }
+    }
 }
 ```
 
