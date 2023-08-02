@@ -1,2 +1,8 @@
 #! /usr/bin/env bash
-bin/camera
+
+if [ -z $PROJECT ]; then
+    echo "Active virtual session not found. See docs."
+    exit
+fi
+
+$PROJECT/bin/camera

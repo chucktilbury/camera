@@ -5,6 +5,7 @@ bin/pip*
 bin/wheel*
 bin/python*
 bin/flask*
+bin/camera
 pyvenv.cfg
 
 # Byte-compiled / optimized / DLL files

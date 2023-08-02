@@ -1,9 +1,10 @@
 export PROJECT_ID=$$
+
 . ~/.bashrc
-. ~/Src/serial_visca/bin/activate
+. $PROJECT/bin/activate
 
 alias status="git status"
 alias commit="git commit -m"
 alias add="git add ."
 alias push="git push"
-alias all="git add .; git commit; git push"
+alias all="git add . && git commit && git push"

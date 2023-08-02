@@ -1,2 +1,10 @@
-#!/usr/bin/env bash
+#! /usr/bin/env bash
+
+if [ -z $PROJECT ]; then
+    echo "Active virtual session not found. See docs."
+    exit
+fi
+
 pyinstaller src/camera.py
+ln -s $PROJECT/dist/$PROJ_NAME/$PROJ_NAME $PROJECT/bin/$PROJ_NAME
+

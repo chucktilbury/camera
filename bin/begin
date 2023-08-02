@@ -1,7 +1,15 @@
 #! /usr/bin/env bash
+
 export PROJECT=`pwd`
+export PROJ_NAME="camera"
+
+if [ ! $PROJ_NAME == ${PROJECT##*/} ]; then
+    echo "This script must be run from the project directory. See README."
+    exit
+fi
+
 if [ ! -f bin/activate ]; then
-    bin/create
+    $PROJECT/bin/create
 fi
 
 bash --rcfile $PROJECT/bin/rcfile
