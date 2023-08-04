@@ -8,6 +8,7 @@ bin/flask*
 bin/camera
 bin/py*
 pyvenv.cfg
+.vscode
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

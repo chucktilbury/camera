@@ -201,16 +201,23 @@ class Camera:
 
     # Iterate through the byte array and send the bytes through the
     # serial port.
-    def send_message(self, data):
+    def send_message(self, data, siz):
         '''
         Internal use only.
         '''
         #print("send: ", self.link.in_waiting, ", ", self.link.out_waiting)
-        time.sleep(0.5)
+        # Sometimes the camera sends a push message that is not a response to
+        # a message that we sent. This eats those safely.
+        if self.link.in_waiting != 0:
+            m = self.receive_message(self.link.in_waiting)
+            #self.print_msg(m)
+
+        #self.print_msg(data)
         for b in data:
             self.link.write(b)
-
         self.link.flush()
+
+        return self.receive_message(siz)
 
 
     # Receive bytes from the serial port into an array. Return the raw
@@ -224,12 +231,13 @@ class Camera:
         x = []
         v = 0
         while self.link.in_waiting < siz:
-            time.sleep(1.5)
+            time.sleep(0.1)
 
         for i in range(self.link.in_waiting):
             v = self.link.read(1)
             x.append(v)
 
+        #self.print_msg(x)
         return x
 
     # Check for an error and raise an exception if one has taken place.
@@ -278,7 +286,7 @@ class Camera:
         '''
         Destroy the camera object.
         '''
-        #self.reboot()
+        self.reset()
         self.link.close()
 
     def reboot(self):
@@ -295,8 +303,7 @@ class Camera:
         Resp: 90 50 0p 0q 0r 0s ff: pqrs = zoom position
         '''
         data = [b'\x81', b'\x09', b'\x04', b'\x47', b'\xff']
-        self.send_message(data)
-        resp = self.receive_message(7)
+        resp = self.send_message(data, 7)
         self.check_error(resp)
         return self.decode_word(resp)
 
@@ -310,8 +317,7 @@ class Camera:
         tuvw: tilt position
         '''
         data = [b'\x81', b'\x09', b'\x06', b'\x12', b'\xff']
-        self.send_message(data)
-        resp = self.receive_message(11)
+        resp = self.send_message(data, 11)
         self.check_error(resp)
         #self.print_resp(resp)
         retv = {}
@@ -339,7 +345,7 @@ class Camera:
         No parameters.
         '''
         data = [b'\x81', b'\x01', b'\x06', b'\x05', b'\xff']
-        self.send_message(data)
+        self.send_message(data, 0)
         self.check_error(self.receive_message(3))
         #time.sleep(2)
 
@@ -353,7 +359,7 @@ class Camera:
         max zoom = 2885
         '''
         data = [b'\x81', b'\x01', b'\x04', b'\x07', b'\x2f', b'\xff']
-        self.send_message(data)
+        self.send_message(data, 3)
 
     def zoom_out(self):
         '''
@@ -365,7 +371,7 @@ class Camera:
         min zoom = 0
         '''
         data = [b'\x81', b'\x01', b'\x04', b'\x07', b'\x3f', b'\xff']
-        self.send_message(data)
+        self.send_message(data, 3)
 
     def move_up(self, pan=SPEED, tilt=SPEED):
         '''
@@ -380,7 +386,7 @@ class Camera:
                 b'\x01', b'\x01', b'\x03', b'\x01', b'\xFF']
         self.encode_byte(data, pan, 4)
         self.encode_byte(data, tilt, 5)
-        self.send_message(data)
+        self.send_message(data, 3)
 
     def move_down(self, pan=SPEED, tilt=SPEED)        :
         '''
@@ -395,7 +401,7 @@ class Camera:
                 b'\x01', b'\x01', b'\x03', b'\x02', b'\xFF']
         self.encode_byte(data, pan, 4)
         self.encode_byte(data, tilt, 5)
-        self.send_message(data)
+        self.send_message(data, 3)
 
     def move_left(self, pan=SPEED, tilt=SPEED):
         '''
@@ -410,7 +416,7 @@ class Camera:
                 b'\x01', b'\x01', b'\x01', b'\x03', b'\xFF']
         self.encode_byte(data, pan, 4)
         self.encode_byte(data, tilt, 5)
-        self.send_message(data)
+        self.send_message(data, 3)
 
     def move_right(self, pan=SPEED, tilt=SPEED):
         '''
@@ -425,59 +431,7 @@ class Camera:
                 b'\x01', b'\x01', b'\x02', b'\x03', b'\xFF']
         self.encode_byte(data, pan, 4)
         self.encode_byte(data, tilt, 5)
-        self.send_message(data)
-
-    def move_upleft(self, pan=SPEED, tilt=SPEED):
-        '''
-        Set the speed when the camera moves up left and move it to the limit.
-        8x 01 06 01 vv ww 03 01 FF
-        vv = pan speed 01 - 18
-        ww = tilt speed 01 - 18
-        '''
-        data = [b'\x81', b'\x01', b'\x06', b'\x01',
-                b'\x01', b'\x01', b'\x01', b'\x01', b'\xFF']
-        self.encode_byte(data, pan, 4)
-        self.encode_byte(data, tilt, 5)
-        self.send_message(data)
-
-    def move_upright(self, pan=SPEED, tilt=SPEED):
-        '''
-        Set the speed when the camera moves up right and move it to the limit.
-        8x 01 06 01 vv ww 03 01 FF
-        vv = pan speed 01 - 18
-        ww = tilt speed 01 - 18
-        '''
-        data = [b'\x81', b'\x01', b'\x06', b'\x01',
-                b'\x01', b'\x01', b'\x02', b'\x01', b'\xFF']
-        self.encode_byte(data, pan, 4)
-        self.encode_byte(data, tilt, 5)
-        self.send_message(data)
-
-    def move_downleft(self, pan=SPEED, tilt=SPEED)       :
-        '''
-        Set the speed when the camera moves down left and move it to the limit.
-        8x 01 06 01 vv ww 03 01 FF
-        vv = pan speed 01 - 18
-        ww = tilt speed 01 - 18
-        '''
-        data = [b'\x81', b'\x01', b'\x06', b'\x01',
-                b'\x01', b'\x01', b'\x01', b'\x02', b'\xFF']
-        self.encode_byte(data, pan, 4)
-        self.encode_byte(data, tilt, 5)
-        self.send_message(data)
-
-    def move_downright(self, pan=SPEED, tilt=SPEED):
-        '''
-        Set the speed when the camera moves down right and move it to the limit.
-        8x 01 06 01 vv ww 03 01 FF
-        vv = pan speed 01 - 18
-        ww = tilt speed 01 - 18
-        '''
-        data = [b'\x81', b'\x01', b'\x06', b'\x01',
-                b'\x01', b'\x01', b'\x02', b'\x02', b'\xFF']
-        self.encode_byte(data, pan, 4)
-        self.encode_byte(data, tilt, 5)
-        self.send_message(data)
+        self.send_message(data, 3)
 
     def move_stop(self):
         '''
@@ -487,10 +441,8 @@ class Camera:
         ww = tilt speed 01 - 18
         '''
         data = [b'\x81', b'\x01', b'\x06', b'\x01',
-                b'\x01', b'\x01', b'\x03', b'\x03', b'\xFF']
-        self.encode_byte(data, pan, 4)
-        self.encode_byte(data, tilt, 5)
-        self.send_message(data)
+                b'\x03', b'\x03', b'\x03', b'\x03', b'\xFF']
+        self.send_message(data, 3)
 
     def set_pos(self, pan, tilt, pspeed=SPEED, tspeed=SPEED):
         '''
@@ -513,8 +465,8 @@ class Camera:
         self.encode_word(data, pan, 6)
         self.encode_word(data, tilt, 10)
         #self.print_msg(data)
-        self.send_message(data)
-        self.check_error(self.receive_message(3))
+        self.send_message(data, 3)
+        #self.check_error()
 
     def set_zoom(self, val):
         '''
@@ -527,6 +479,25 @@ class Camera:
                 b'\x00', b'\x00', b'\x00', b'\x00',
                 b'\xff']
         self.encode_word(data, val, 4)
-        self.send_message(data)
-        self.check_error(self.receive_message(3))
+        self.send_message(data, 3)
+        #self.check_error(self.receive_message(3))
+
+    def set_all(self, pan, tilt, zoom, pspeed=SPEED, tspeed=SPEED):
+        '''
+        Set the pan, tilt, and zoom with one message.
+        '''
+        data = [b'\x81', b'\x01', b'\x06', b'\x02',
+                b'\x00', b'\x00',
+                b'\x00', b'\x00', b'\x00', b'\x00',
+                b'\x00', b'\x00', b'\x00', b'\x00',
+                b'\xff',
+                b'\x81', b'\x01', b'\x04', b'\x47',
+                b'\x00', b'\x00', b'\x00', b'\x00',
+                b'\xff']
+        self.encode_byte(data, pspeed, 4)
+        self.encode_byte(data, tspeed, 5)
+        self.encode_word(data, pan, 6)
+        self.encode_word(data, tilt, 10)
+        self.encode_word(data, zoom, 19)
+        self.send_message(data, 6)
 

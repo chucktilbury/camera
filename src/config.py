@@ -108,7 +108,7 @@ class Config:
         Read the state of the configuration from the file.
         '''
         try:
-            print("loading:", self.fname)
+            #print("loading:", self.fname)
             with open(self.fname, "rb") as fh:
                 self.data = pickle.load(fh)
         except FileNotFoundError as e:
@@ -162,8 +162,8 @@ class Config:
         '''
         Return the data for a specific preset
         '''
-        print('get_preset:', name)
-        pp(self.data)
+        #print('get_preset:', name)
+        #pp(self.data)
         return {'pan': self.data['presets'][name]['pan'],
                 'tilt': self.data['presets'][name]['tilt'],
                 'zoom': self.data['presets'][name]['zoom']}
