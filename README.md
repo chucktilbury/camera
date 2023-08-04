@@ -48,7 +48,10 @@ environment.
 * Clean a session and delete all generated files: ```clean```. Note that
 this must be done in an active session.
 * Build a stand-alone executable file in an active session: ```make``` or
-```build``` (Note that building is broken as of this writing)
+```build```. Note that if you have trouble running a built application, then
+be sure that all of the packages are installed in the system copy of python
+and not just in the virtual environment. You can do that by running the command
+```pip install -r requirements.txt``` while **not** in the build environment.
 * Run the current version without building" ```python src/app.py camera.cfg /dev/ttyUSB0```
 or ```camera camera.cfg /dev/ttyUSB0```
 
