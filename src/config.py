@@ -40,7 +40,7 @@ class Config:
 
         self.data = {}
         self.data['cam_name'] = DEFAULT_CFG_NAME
-        self.data['cam_port'] = DEFAULT_CFG_PORT
+        #self.data['cam_port'] = DEFAULT_CFG_PORT
         self.data['presets'] = {}
         self.data['presets']['default'] = {}
         self.data['presets']['default']['pan'] = 400
@@ -90,7 +90,7 @@ class Config:
                     return os.path.join(pat, name)
 
         # could not be found
-        raise ConfigError('Cannot find any config file')
+        raise ConfigError('Cannot find a config file')
 
 
     def save(self):
@@ -136,17 +136,11 @@ class Config:
         '''
         return self.data['cam_name']
 
-    def set_port(self, port):
-        '''
-        Set the camera serial port
-        '''
-        self.data['cam_port'] = port
-
     def get_port(self):
         '''
         Set the camera serial port
         '''
-        return self.data['cam_port']
+        return self.cam_port
 
     # in the future, this will read the settings from the camera
     def make_preset(self, name, pan, tilt, zoom):

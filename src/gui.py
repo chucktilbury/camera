@@ -187,7 +187,7 @@ class Gui(tk.Tk):
         wid.grid(row=1, column=0, sticky=tk.E, padx=5, pady=5)
 
         self.cam_port = ttk.Label(frame)
-        self.cam_port['text'] = self.cfg.get_port()
+        self.cam_port['text'] = self.cam.device #cfg.get_port()
         self.cam_port.grid(row=1, column=1, sticky=tk.W, padx=5, pady=5)
 
         wid = tk.Label(frame, text="Select Preset:")
@@ -221,7 +221,7 @@ class Gui(tk.Tk):
         top = ttk.Frame(frame)
         top['borderwidth'] = 2
         top['relief'] = 'sunken'
-        top['padding'] = (20,0)
+        top['padding'] = (25,0)
         top.grid(row=0, column=0, sticky=tk.EW)
 
         wid = tk.Label(top, text="Pan/Tilt")
@@ -231,16 +231,25 @@ class Gui(tk.Tk):
         t1['padding'] = (20,0)
         t1.grid(row=1, column=1, sticky=tk.EW, padx=5, pady=5)
 
-        wid = tk.Button(t1, text="up", command=self.up_callback)
+        width = 7
+        wid = tk.Button(t1, text="up", width=width, command=self.up_callback)
+        wid['repeatdelay'] = 500
+        wid['repeatinterval'] = 100
         wid.grid(row=0, column=1, sticky=tk.EW)
         ToolTip(wid, delay=0.25, msg='Move the camera UP')
-        wid = ttk.Button(t1, text="left", command=self.left_callback)
+        wid = tk.Button(t1, text="left", width=width, command=self.left_callback)
+        wid['repeatdelay'] = 500
+        wid['repeatinterval'] = 100
         ToolTip(wid, delay=0.25, msg='Move the camera LEFT')
         wid.grid(row=1, column=0, sticky=tk.EW)
-        wid = ttk.Button(t1, text="right", command=self.right_callback)
+        wid = tk.Button(t1, text="right", width=width, command=self.right_callback)
+        wid['repeatdelay'] = 500
+        wid['repeatinterval'] = 100
         ToolTip(wid, delay=0.25, msg='Move the camera RIGHT')
         wid.grid(row=1, column=2, sticky=tk.EW)
-        wid = ttk.Button(t1, text="down", command=self.down_callback)
+        wid = tk.Button(t1, text="down", width=width, command=self.down_callback)
+        wid['repeatdelay'] = 500
+        wid['repeatinterval'] = 100
         ToolTip(wid, delay=0.25, msg='Move the camera DOWN')
         wid.grid(row=2, column=1, sticky=tk.EW)
 
@@ -254,10 +263,14 @@ class Gui(tk.Tk):
         t2['padding'] = (65,0)
         t2.grid(row=3, column=1, sticky=tk.EW, padx=5, pady=5)
 
-        wid = ttk.Button(t2, text="in", command=self.zoom_in_callback)
+        wid = tk.Button(t2, text="in", width=width, command=self.zoom_in_callback)
+        wid['repeatdelay'] = 500
+        wid['repeatinterval'] = 100
         wid.grid(row=0, column=0, sticky=tk.EW)
         ToolTip(wid, delay=0.25, msg='Zoom the camera closer')
-        wid = ttk.Button(t2, text="out", command=self.zoom_out_callback)
+        wid = tk.Button(t2, text="out", width=width, command=self.zoom_out_callback)
+        wid['repeatdelay'] = 500
+        wid['repeatinterval'] = 100
         wid.grid(row=0, column=1, sticky=tk.EW)
         ToolTip(wid, delay=0.25, msg='Zoom the camera further away')
 
@@ -310,32 +323,38 @@ class Gui(tk.Tk):
         bottom['padding'] = (20,0)
         bottom.grid(row=2, column=0, sticky=tk.EW)
 
-        wid = tk.Label(bottom, text="Status")
-        wid.grid(row=0, column=1, sticky=tk.EW, padx=20, pady=5)
+        bt = tk.Frame(bottom)
+        bt.grid(row=0, column=0, sticky=tk.EW, padx=90, pady=5)
+
+        wid = tk.Label(bt, text="Camera Status")
+        wid.grid(row=0, column=0, sticky=tk.EW)
+
+        bb = tk.Frame(bottom)
+        bb.grid(row=1, column=0, sticky=tk.EW)
 
         stat = self.cfg.get_preset(self.opt_ctl.get())
 
-        b1 = ttk.Frame(bottom)
+        b1 = ttk.Frame(bb)
         b1['padding'] = (15,0)
-        b1.grid(row=1, column=0, sticky=tk.EW)
+        b1.grid(row=1, column=0, sticky=tk.EW, padx=0, pady=0)
         wid = tk.Label(b1, text="Pan:")
         wid.grid(row=0, column=0, sticky=tk.E, padx=0, pady=0)
         self.pan_status = tk.Label(b1)
         self.pan_status['text'] = stat['pan']
         self.pan_status.grid(row=0, column=1, sticky=tk.W, padx=0, pady=0)
 
-        b2 = ttk.Frame(bottom)
+        b2 = ttk.Frame(bb)
         b2['padding'] = (15,0)
-        b2.grid(row=1, column=1, sticky=tk.EW)
+        b2.grid(row=1, column=1, sticky=tk.EW, padx=0, pady=0)
         wid = tk.Label(b2, text="Tilt:")
         wid.grid(row=0, column=0, sticky=tk.E, padx=0, pady=0)
         self.tilt_status = tk.Label(b2)
         self.tilt_status['text'] = stat['tilt']
         self.tilt_status.grid(row=0, column=1, sticky=tk.W, padx=0, pady=0)
 
-        b3 = ttk.Frame(bottom)
+        b3 = ttk.Frame(bb)
         b3['padding'] = (15,0)
-        b3.grid(row=1, column=2, sticky=tk.EW)
+        b3.grid(row=1, column=2, sticky=tk.EW, padx=0, pady=0)
         wid = tk.Label(b3, text="Zoom:")
         wid.grid(row=0, column=0, sticky=tk.E, padx=0, pady=0)
         self.zoom_status = tk.Label(b3)
@@ -381,7 +400,7 @@ class Gui(tk.Tk):
         self.zoom_status['text'] = str(self.internal_status['zoom'])
         #pp(self.internal_status)
         self.cam_name['text'] = self.cfg.get_name()
-        self.cam_port['text'] = self.cfg.get_port()
+        self.cam_port['text'] = self.cam.device #cfg.get_port()
 
     def update_position(self):
         '''

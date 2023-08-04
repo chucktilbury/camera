@@ -3,13 +3,14 @@
 from config import Config
 from camera import Camera
 from gui import Gui
+import argparse
 
 class Application:
 
-    def __init__(self):
+    def __init__(self, fname, port):
 
-        self.cfg = Config('camera.cfg')
-        self.cam = Camera(device=self.cfg.get_port())
+        self.cfg = Config(fname)
+        self.cam = Camera(device=port)
         self.gui = Gui(self.cfg, self.cam)
 
     def run(self):
@@ -21,9 +22,9 @@ class Application:
 
 if __name__ == '__main__':
 
-    app = Application()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("fname", help="name of the configuration file to use", type=str)#, required=True)
+    parser.add_argument("port", help="name of the serial port to use", type=str)#, required=True)
+    args = parser.parse_args()
 
-    #app.do_preset("Default")
-    #app.do_preset("test")
-
-    app.run()
+    Application(args.fname, args.port).run()

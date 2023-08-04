@@ -1,4 +1,5 @@
 import pickle
+import sys
 
 DEFAULT_CFG_FILE='camera.cfg'
 DEFAULT_CFG_NAME='Default Config'
@@ -14,9 +15,14 @@ RESET_PAN = 410
 RESET_TILT = 125
 RESET_ZOOM = 0
 
+if len(sys.argv) > 1:
+    cam_name = sys.argv[1]
+else:
+    cam_name = DEFAULT_CFG_NAME
+
 data = {}
-data['cam_name'] = DEFAULT_CFG_NAME
-data['cam_port'] = DEFAULT_CFG_PORT
+data['cam_name'] = cam_name
+#data['cam_port'] = DEFAULT_CFG_PORT
 
 data['presets'] = {}
 

@@ -278,7 +278,7 @@ class Camera:
         Create the camera object.
         '''
         self.device = device
-        self.link = serial.Serial(device)
+        self.link = serial.Serial(self.device)
         self.reset()
         time.sleep(1)
 
@@ -501,3 +501,5 @@ class Camera:
         self.encode_word(data, zoom, 19)
         self.send_message(data, 6)
 
+    def get_device(self):
+        return self.device
