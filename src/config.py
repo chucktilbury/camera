@@ -124,25 +124,25 @@ class Config:
         cam.set_pos(pset['pan'], pset['tilt'])
         cam.set_zoom(pset['zoom'])
 
-    def set_cam_name(self, name):
+    def set_name(self, name):
         '''
         Set the camera name
         '''
         self.data['cam_name'] = name
 
-    def get_cam_name(self):
+    def get_name(self):
         '''
         Get the camera name for display
         '''
         return self.data['cam_name']
 
-    def set_cam_port(self, port):
+    def set_port(self, port):
         '''
         Set the camera serial port
         '''
         self.data['cam_port'] = port
 
-    def get_cam_port(self):
+    def get_port(self):
         '''
         Set the camera serial port
         '''
@@ -162,7 +162,11 @@ class Config:
         '''
         Return the data for a specific preset
         '''
-        return self.data['presets'][name]
+        print('get_preset:', name)
+        pp(self.data)
+        return {'pan': self.data['presets'][name]['pan'],
+                'tilt': self.data['presets'][name]['tilt'],
+                'zoom': self.data['presets'][name]['zoom']}
 
     def show(self):
         pp(self.data)

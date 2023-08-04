@@ -10,10 +10,10 @@ data['cam_port'] = DEFAULT_CFG_PORT
 
 data['presets'] = {}
 
-data['presets']['default'] = {}
-data['presets']['default']['pan'] = 410
-data['presets']['default']['tilt'] = 220
-data['presets']['default']['zoom'] = 0
+data['presets']['Default'] = {}
+data['presets']['Default']['pan'] = 410
+data['presets']['Default']['tilt'] = 220
+data['presets']['Default']['zoom'] = 1000
 
 data['presets']['test 1'] = {}
 data['presets']['test 1']['pan'] = 510
