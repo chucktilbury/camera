@@ -4,9 +4,20 @@
 import serial
 import time
 
-SPEED = 0x1f
+SPEED = 0x18
 RESP_DELAY = 0.75
-MSG_DELAY = 0.5
+MSG_DELAY = 0.75
+
+# Note that the camera does not like to be moved to its max extents.
+MAX_PAN = 800
+MIN_PAN = 0
+MAX_TILT = 200
+MIN_TILT = 0
+MAX_ZOOM = 2880
+MIN_ZOOM = 0
+RESET_PAN = 410
+RESET_TILT = 210
+RESET_ZOOM = 0
 '''
 Need to do something about the situation where the value of an input exceeds the
 maximum allowable value.
@@ -194,28 +205,28 @@ class Camera:
         '''
         Internal use only.
         '''
+        #print("send: ", self.link.in_waiting, ", ", self.link.out_waiting)
+        time.sleep(0.5)
         for b in data:
             self.link.write(b)
 
-        # Give the camera a little time to react.
-        time.sleep(RESP_DELAY)
-
-        retv = self.check_error()
-        time.sleep(MSG_DELAY)
-
-        return retv
+        self.link.flush()
 
 
     # Receive bytes from the serial port into an array. Return the raw
     # array without checking for errors. The caller is responsible for
     # checking to see if an error happened.
-    def receive_message(self):
+    def receive_message(self, siz):
         '''
         Internal use only.
         '''
+        #print("receive: ", self.link.in_waiting, ", ", self.link.out_waiting)
         x = []
         v = 0
-        while v != b'\xff':
+        while self.link.in_waiting < siz:
+            time.sleep(1.5)
+
+        for i in range(self.link.in_waiting):
             v = self.link.read(1)
             x.append(v)
 
@@ -223,7 +234,7 @@ class Camera:
 
     # Check for an error and raise an exception if one has taken place.
     # Otherwise return the raw response for further processing.
-    def check_error(self):
+    def check_error(self, resp):
         '''
         Internal use only.
         '''
@@ -254,13 +265,12 @@ class Camera:
     ###########################
     # Public interface
     ###########################
-    def __init__(self, device='/dev/ttyUSB0', timeout=0.5):
+    def __init__(self, device='/dev/ttyUSB0'):
         '''
         Create the camera object.
         '''
         self.device = device
-        self.link = serial.Serial(device, timeout=timeout)
-        time.sleep(1)
+        self.link = serial.Serial(device)
         self.reset()
         time.sleep(1)
 
@@ -285,39 +295,10 @@ class Camera:
         Resp: 90 50 0p 0q 0r 0s ff: pqrs = zoom position
         '''
         data = [b'\x81', b'\x09', b'\x04', b'\x47', b'\xff']
-        resp = self.send_message(data)
+        self.send_message(data)
+        resp = self.receive_message(7)
+        self.check_error(resp)
         return self.decode_word(resp)
-
-    def get_focus_pos(self):
-        '''
-        Get the current focus position.
-
-        Resp: 90 50 0p 0q 0r 0s ff: pqrs = focus position
-        '''
-        data = [b'\x81', b'\x09', b'\x04', b'\x48', b'\xff']
-        resp = self.send_message(data)
-        #self.print_resp(resp)
-        return self.decode_word(resp)
-
-    def get_focus_mode(self):
-        '''
-        Get the current focus mode.
-
-        Resp: 90 50 0p ff: pqrs = focus mode
-        '''
-        data = [b'\x81', b'\x09', b'\x04', b'\x38', b'\xff']
-        resp = self.send_message(data)
-        #self.print_resp(resp)
-        val = self.decode_byte(resp, 2)
-        self.focus_mode = 'unknown'
-        if val == 0x02:
-            self.focus_mode = 'auto'
-        elif val == 0x03:
-            self.focus_mode = 'manual'
-        else:
-            raise CameraUnknownError
-
-        return self.focus_mode
 
     def get_pos(self):
         '''
@@ -329,7 +310,9 @@ class Camera:
         tuvw: tilt position
         '''
         data = [b'\x81', b'\x09', b'\x06', b'\x12', b'\xff']
-        resp = self.send_message(data)
+        self.send_message(data)
+        resp = self.receive_message(11)
+        self.check_error(resp)
         #self.print_resp(resp)
         retv = {}
         retv['pan'] = self.decode_word(resp)
@@ -337,65 +320,6 @@ class Camera:
         #print(retv)
         return retv
 
-    def get_wb_mode(self):
-        '''
-        Return the white balance mode.
-
-        Resp: 90 50 0x FF
-        x: 0 = auto
-        x: 1 = indoor
-        x: 2 = outdoor
-        x: 3 = one push
-        x: 5 = manual
-        '''
-        data = [b'\x81', b'\x09', b'\x04', b'\x35', b'\xff']
-        resp = self.send_message(data)
-        val = self.decode_byte(resp, 2)
-        self.wb_mode = 'unknown'
-        if val == 0x00:
-            self.wb_mode = 'auto'
-        elif val == 0x01:
-            self.wb_mode = 'indoor'
-        elif val == 0x02:
-            self.wb_mode = 'outdoor'
-        elif val == 0x03:
-            self.wb_mode = 'one push'
-        elif val == 0x05:
-            self.wb_mode = 'manual'
-        else:
-            raise CameraUnknownError
-
-        return self.wb_mode
-
-    def get_ae_mode(self):
-        '''
-        Return the Auto Exposure mode.
-
-        Resp: 90 50 0x FF
-        x: 0 = full auto
-        x: 3 = manual
-        x: A = shutter priority
-        x: B = iris priority
-        x: D = bright
-        '''
-        data = [b'\x81', b'\x09', b'\x04', b'\x39', b'\xff']
-        resp = self.send_message(data)
-        val = self.decode_byte(resp, 2)
-        self.ae_mode = 'unknown'
-        if val == 0x00:
-            self.ae_mode = 'auto'
-        elif val == 0x03:
-            self.ae_mode = 'manual'
-        elif val == 0x0A:
-            self.ae_mode = 'shutter'
-        elif val == 0x0B:
-            self.ae_mode = 'iris'
-        elif val == 0x0D:
-            self.ae_mode = 'bright'
-        else:
-            raise CameraUnknownError
-
-        return self.ae_mode
 
     def get_status(self):
         '''
@@ -416,7 +340,8 @@ class Camera:
         '''
         data = [b'\x81', b'\x01', b'\x06', b'\x05', b'\xff']
         self.send_message(data)
-        time.sleep(2)
+        self.check_error(self.receive_message(3))
+        #time.sleep(2)
 
     def zoom_in(self):
         '''
@@ -589,16 +514,19 @@ class Camera:
         self.encode_word(data, tilt, 10)
         #self.print_msg(data)
         self.send_message(data)
+        self.check_error(self.receive_message(3))
 
     def set_zoom(self, val):
         '''
         Set the zoom position
 
         8x 01 04 47 0p 0q 0r 0s ff
+        pqrs: zoom position
         '''
         data = [b'\x81', b'\x01', b'\x04', b'\x47',
                 b'\x00', b'\x00', b'\x00', b'\x00',
                 b'\xff']
         self.encode_word(data, val, 4)
         self.send_message(data)
+        self.check_error(self.receive_message(3))
 

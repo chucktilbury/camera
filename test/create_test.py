@@ -4,16 +4,26 @@ DEFAULT_CFG_FILE='camera.cfg'
 DEFAULT_CFG_NAME='Default Config'
 DEFAULT_CFG_PORT='/dev/ttyUSB0'
 
+MAX_PAN = 800
+MIN_PAN = 0
+MAX_TILT = 200
+MIN_TILT = 0
+MAX_ZOOM = 2880
+MIN_ZOOM = 0
+RESET_PAN = 410
+RESET_TILT = 125
+RESET_ZOOM = 0
+
 data = {}
 data['cam_name'] = DEFAULT_CFG_NAME
 data['cam_port'] = DEFAULT_CFG_PORT
 
 data['presets'] = {}
 
-data['presets']['Default'] = {}
-data['presets']['Default']['pan'] = 410
-data['presets']['Default']['tilt'] = 220
-data['presets']['Default']['zoom'] = 1000
+data['presets']['default'] = {}
+data['presets']['default']['pan'] = RESET_PAN
+data['presets']['default']['tilt'] = RESET_TILT
+data['presets']['default']['zoom'] = RESET_ZOOM
 
 data['presets']['test 1'] = {}
 data['presets']['test 1']['pan'] = 510
