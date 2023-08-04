@@ -1,4 +1,4 @@
-# Serial Visca
+# Camera
 
 Simple library to drive a single TTC8-0x camera over a serial port. This
 application implements a simple GUI to allow for camera presets. A preset is a
@@ -10,7 +10,6 @@ to Python. The data structure looks like this:
 
 ```{python}
 preset_data_structure = {
-    "port": "string", # the serial port the camera is connected to
     "name": "string", # the name of the camera
     "presets": {    # dictionary of presets
         "name": {   # the preset name as the index
