@@ -5,6 +5,7 @@ from tkinter import messagebox
 from tktooltip import ToolTip
 import time
 from config import Config
+from camera import Camera
 from pprint import pprint as pp
 
 MAX_PAN=800
@@ -101,9 +102,10 @@ class NewDialog(tk.Toplevel):
 
 class Gui(tk.Tk):
 
-    def __init__(self, cfg):
+    def __init__(self, cfg, cam):
         super().__init__()
         self.cfg = cfg
+        self.cam = cam
         self.title("Camera Presets")
         #self.geometry('360x550')
         self.resizable(False, False)
@@ -373,13 +375,20 @@ class Gui(tk.Tk):
         '''
         self.preset_name = self.opt_ctl.get()
         #self.internal_status = self.cfg.get_preset(self.preset_name)
-        print("update",)
+        print("update status")
         self.pan_status['text'] = str(self.internal_status['pan'])
         self.tilt_status['text'] = str(self.internal_status['tilt'])
         self.zoom_status['text'] = str(self.internal_status['zoom'])
         pp(self.internal_status)
         self.cam_name['text'] = self.cfg.get_name()
         self.cam_port['text'] = self.cfg.get_port()
+
+    def update_position(self):
+        '''
+        Update the actual position of the camera and read the position for the GUI.
+        Verify that they match
+        '''
+        print("update position")
 
     def get_status(self):
         '''
@@ -405,7 +414,7 @@ class Gui(tk.Tk):
 
     def new_button(self):
         NewDialog(self)
-        print('<<here>>')
+        #print('<<here>>')
         self.preset_list = []
         for s in self.cfg.data['presets']:
             self.preset_list.append(s)
@@ -436,6 +445,7 @@ class Gui(tk.Tk):
         if self.internal_status['tilt'] < 0:
             self.internal_status['tilt'] = 0
         self.update_status()
+        self.update_position()
         print("up")
 
     def down_button(self):
@@ -443,6 +453,7 @@ class Gui(tk.Tk):
         if self.internal_status['tilt'] > MAX_TILT:
             self.internal_status['tilt'] = MAX_TILT
         self.update_status()
+        self.update_position()
         print("down")
 
     def left_button(self):
@@ -450,6 +461,7 @@ class Gui(tk.Tk):
         if self.internal_status['pan'] < 0:
             self.internal_status['pan'] = 0
         self.update_status()
+        self.update_position()
         print("left")
 
     def right_button(self):
@@ -457,6 +469,7 @@ class Gui(tk.Tk):
         if self.internal_status['pan'] > MAX_PAN:
             self.internal_status['pan'] = MAX_PAN
         self.update_status()
+        self.update_position()
         print("right")
 
     def in_button(self):
@@ -464,6 +477,7 @@ class Gui(tk.Tk):
         if self.internal_status['zoom'] > MAX_ZOOM:
             self.internal_status['zoom'] = MAX_ZOOM
         self.update_status()
+        self.update_position()
         print('in')
 
     def out_button(self):
@@ -471,6 +485,7 @@ class Gui(tk.Tk):
         if self.internal_status['zoom'] < 0:
             self.internal_status['zoom'] = 0
         self.update_status()
+        self.update_position()
         print('out')
 
     def quit_button(self):
@@ -481,9 +496,9 @@ class Application:
     def __init__(self):
 
         self.cfg = Config('camera.cfg')
-        #self.cam = Camera(device=self.cfg.get_cam_port())
+        self.cam = Camera(device=self.cfg.get_port())
 
-        self.gui = Gui(self.cfg)
+        self.gui = Gui(self.cfg, self.cam)
 
     def run(self):
         self.gui.run()

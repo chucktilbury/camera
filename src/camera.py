@@ -238,7 +238,7 @@ class Camera:
         '''
         Internal use only.
         '''
-        resp = self.receive_message()
+        #resp = self.receive_message()
         #self.print_resp(resp)
         if self.byte_to_int(resp[1]) & 0xF0 != 0x50:
             if self.byte_to_int(resp[2]) & 0xFF == 0x41:
