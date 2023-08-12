@@ -1,7 +1,12 @@
 export PROJECT_ID=$$
 
 . ~/.bashrc
-. $PROJECT/bin/activate
+if [ -f $PROJECT/bin/activate ]; then
+    . $PROJECT/bin/activate
+elif [ -f $PROJECT/Scripts/activate ]; then
+    . $PROJECT/Scripts/activate
+    export PATH=$PROJECT/bin:$PATH
+fi
 
 alias status="git status"
 alias commit="git commit -m"

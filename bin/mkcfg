@@ -1,5 +1,7 @@
+#!/usr/bin/env python
 import pickle
 import sys
+import argparse
 
 DEFAULT_CFG_FILE='camera.cfg'
 DEFAULT_CFG_NAME='Default Config'
@@ -15,14 +17,27 @@ RESET_PAN = 410
 RESET_TILT = 125
 RESET_ZOOM = 0
 
+parser = argparse.ArgumentParser(
+    description='Create a default configuration file for the camera controller.')
+parser.add_argument('-f', dest="fname", default='camera.cfg', 
+                    help="name of the configuration file to use", 
+                    type=str, required=True)
+parser.add_argument('-p', dest="port", default='/dev/ttyUSB0', 
+                    help="name of the serial port to use", 
+                    type=str, required=True)
+parser.add_argument('-c', dest="cname", default='Default Config', 
+                    help="name of the camera to use", 
+                    type=str, required=True)
+args = parser.parse_args()
+
 if len(sys.argv) > 1:
     cam_name = sys.argv[1]
 else:
     cam_name = DEFAULT_CFG_NAME
 
 data = {}
-data['cam_name'] = cam_name
-#data['cam_port'] = DEFAULT_CFG_PORT
+data['cam_name'] = args.cname
+data['cam_port'] = args.port
 
 data['presets'] = {}
 
@@ -51,5 +66,5 @@ data['presets']['Default']['zoom'] = RESET_ZOOM
 # data['presets']['test 4']['tilt'] = 20
 # data['presets']['test 4']['zoom'] = 2000
 
-with open(DEFAULT_CFG_FILE, "wb") as fh:
+with open(args.fname, "wb") as fh:
     pickle.dump(data, fh)

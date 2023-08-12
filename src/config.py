@@ -27,27 +27,27 @@ class Config:
         except Exception as e:
             raise ConfigError("Cannot load a configuration file")
 
-    def create_default_config(self):
-        '''
-        Create a default configuration. It is not permissable for the camera
-        app to begin without a valid configuration.
-        '''
-        # create the default config file in the same directory as the
-        # executable.
-        self.fname = os.path.join(
-            os.path.abspath(
-                os.path.dirname(sys.argv[0])), DEFAULT_CFG_FILE)
+    # def create_default_config(self):
+    #     '''
+    #     Create a default configuration. It is not permissable for the camera
+    #     app to begin without a valid configuration.
+    #     '''
+    #     # create the default config file in the same directory as the
+    #     # executable.
+    #     self.fname = os.path.join(
+    #         os.path.abspath(
+    #             os.path.dirname(sys.argv[0])), DEFAULT_CFG_FILE)
 
-        self.data = {}
-        self.data['cam_name'] = DEFAULT_CFG_NAME
-        #self.data['cam_port'] = DEFAULT_CFG_PORT
-        self.data['presets'] = {}
-        self.data['presets']['default'] = {}
-        self.data['presets']['default']['pan'] = 400
-        self.data['presets']['default']['tilt'] = 220
-        self.data['presets']['default']['zoom'] = 0
-        self.save()
-        self.load()
+    #     self.data = {}
+    #     self.data['cam_name'] = DEFAULT_CFG_NAME
+    #     self.data['cam_port'] = DEFAULT_CFG_PORT
+    #     self.data['presets'] = {}
+    #     self.data['presets']['default'] = {}
+    #     self.data['presets']['default']['pan'] = 400
+    #     self.data['presets']['default']['tilt'] = 220
+    #     self.data['presets']['default']['zoom'] = 0
+    #     self.save()
+    #     self.load()
 
     def find_config(self, name):
         '''
@@ -79,15 +79,15 @@ class Config:
             return os.path.join(p, name)
 
         # check in the previous dir from where the executable is located
-        if os.path.isfile(os.path.join(p, name)):
-            return os.path.join(p, name)
-
-        # Walk the previous directory
-        for root, dirs, files in os.walk(p):
-            for s in dirs:
-                pat = os.path.abspath(s)
-                if os.path.isfile(os.path.join(pat, name)):
-                    return os.path.join(pat, name)
+        # if os.path.isfile(os.path.join(p, name)):
+        #     return os.path.join(p, name)
+        #
+        # # Walk the previous directory
+        # for root, dirs, files in os.walk(p):
+        #     for s in dirs:
+        #         pat = os.path.abspath(s)
+        #         if os.path.isfile(os.path.join(pat, name)):
+        #             return os.path.join(pat, name)
 
         # could not be found
         raise ConfigError('Cannot find a config file')
@@ -140,7 +140,7 @@ class Config:
         '''
         Set the camera serial port
         '''
-        return self.cam_port
+        return self.data['cam_port']
 
     # in the future, this will read the settings from the camera
     def make_preset(self, name, pan, tilt, zoom):

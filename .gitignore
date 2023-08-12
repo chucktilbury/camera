@@ -9,6 +9,9 @@ bin/camera
 bin/py*
 pyvenv.cfg
 .vscode
+Scripts
+Include
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

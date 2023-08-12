@@ -8,7 +8,7 @@ if [ ! $PROJ_NAME == ${PROJECT##*/} ]; then
     exit
 fi
 
-if [ ! -f bin/activate ]; then
+if [ ! -f bin/activate ] && [ ! -f Scripts/activate ]; then
     $PROJECT/bin/create
 fi
 

@@ -7,10 +7,10 @@ import argparse
 
 class Application:
 
-    def __init__(self, fname, port):
+    def __init__(self, fname):
 
         self.cfg = Config(fname)
-        self.cam = Camera(device=port)
+        self.cam = Camera(device=self.cfg.get_port())
         self.gui = Gui(self.cfg, self.cam)
 
     def run(self):
@@ -24,7 +24,6 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("fname", help="name of the configuration file to use", type=str)#, required=True)
-    parser.add_argument("port", help="name of the serial port to use", type=str)#, required=True)
     args = parser.parse_args()
 
-    Application(args.fname, args.port).run()
+    Application(args.fname).run()
