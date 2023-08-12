@@ -1,0 +1,12 @@
+#! /usr/bin/env bash
+
+if [ -z $PROJECT ]; then
+    echo "Active virtual session not found. See docs."
+    exit
+fi
+
+rm -f $PROJECT/bin/camera
+pyinstaller --clean --noconfirm --name camera $PROJECT/src/app.py
+cp -r $PROJECT/dist/$PROJ_NAME/* $PROJECT/bin
+$PROJECT/utils/mkcfg -f $PROJECT/bin/camera.cfg -p /dev/ttyUSB0 -c "Default Camera"
+

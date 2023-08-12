@@ -14,7 +14,7 @@ class NewDialog(tk.Toplevel):
     def __init__(self, master, *args):
         tk.Toplevel.__init__(self, master, *args)
         self.title('New Preset')
-        #self.geometry('150x150')
+        self.geometry('150x150')
         self.resizable(False, False)
         self.grab_set()
 
@@ -104,7 +104,7 @@ class Gui(tk.Tk):
         self.cfg = cfg
         self.cam = cam
         self.title("Camera Presets")
-        #self.geometry('360x550')
+        #self.geometry('300x450')
         self.resizable(False, False)
 
         # supporting monkey patching the callbacks. Re-assign these to connect
@@ -124,8 +124,8 @@ class Gui(tk.Tk):
         self.preset_name = 'Default'
         self.main_layout()
         #self.update_status()
-        self.cam.set_pos(self.internal_status['pan'], self.internal_status['tilt'])
-        self.cam.set_zoom(self.internal_status['zoom'])
+        #self.cam.set_pos(self.internal_status['pan'], self.internal_status['tilt'])
+        #self.cam.set_zoom(self.internal_status['zoom'])
         self.update_status_from_camera()
 
     def run(self):
@@ -221,14 +221,14 @@ class Gui(tk.Tk):
         top = ttk.Frame(frame)
         top['borderwidth'] = 2
         top['relief'] = 'sunken'
-        top['padding'] = (25,0)
+        top['padding'] = (70,0)
         top.grid(row=0, column=0, sticky=tk.EW)
 
         wid = tk.Label(top, text="Pan/Tilt")
         wid.grid(row=0, column=1, padx=5, pady=5, sticky=tk.EW)
 
         t1 = ttk.Frame(top)
-        t1['padding'] = (20,0)
+        #t1['padding'] = (20,0)
         t1.grid(row=1, column=1, sticky=tk.EW, padx=5, pady=5)
 
         width = 7
@@ -260,7 +260,7 @@ class Gui(tk.Tk):
         wid.grid(row=2, column=1, padx=5, pady=5, sticky=tk.EW)
 
         t2 = ttk.Frame(top)
-        t2['padding'] = (65,0)
+        t2['padding'] = (25,0)
         t2.grid(row=3, column=1, sticky=tk.EW, padx=5, pady=5)
 
         wid = tk.Button(t2, text="in", width=width, command=self.zoom_in_callback)
@@ -280,7 +280,7 @@ class Gui(tk.Tk):
         center = ttk.Frame(frame)
         center['borderwidth'] = 2
         center['relief'] = 'sunken'
-        center['padding'] = (5,0)
+        #center['padding'] = (5,0)
         center.grid(row=1, column=0, sticky=tk.EW)
 
         wid = tk.Label(center, text="Pan/Tilt:")
@@ -291,7 +291,7 @@ class Gui(tk.Tk):
         wid['orient']=tk.HORIZONTAL
         wid['variable']=self.movement_increment
         wid['from_']=1
-        wid['to']=10
+        wid['to']=20
         wid['length']=240
         ToolTip(wid, delay=0.25, msg='Set the camera increment for moving.')
         self.movement_increment.set(5)
@@ -308,7 +308,7 @@ class Gui(tk.Tk):
         wid['orient']=tk.HORIZONTAL
         wid['variable']=self.zoom_increment
         wid['from_']=10
-        wid['to']=100
+        wid['to']=250
         wid['length']=240
         ToolTip(wid, delay=0.25, msg='Set the camera increment for zoom.')
         self.zoom_increment.set(50)
@@ -320,7 +320,7 @@ class Gui(tk.Tk):
         bottom = ttk.Frame(frame)
         bottom['borderwidth'] = 2
         bottom['relief'] = 'sunken'
-        bottom['padding'] = (20,0)
+        bottom['padding'] = (25,0)
         bottom.grid(row=2, column=0, sticky=tk.EW)
 
         bt = tk.Frame(bottom)
@@ -334,8 +334,9 @@ class Gui(tk.Tk):
 
         stat = self.cfg.get_preset(self.opt_ctl.get())
 
+        padx = 20
         b1 = ttk.Frame(bb)
-        b1['padding'] = (15,0)
+        b1['padding'] = (padx,0)
         b1.grid(row=1, column=0, sticky=tk.EW, padx=0, pady=0)
         wid = tk.Label(b1, text="Pan:")
         wid.grid(row=0, column=0, sticky=tk.E, padx=0, pady=0)
@@ -344,7 +345,7 @@ class Gui(tk.Tk):
         self.pan_status.grid(row=0, column=1, sticky=tk.W, padx=0, pady=0)
 
         b2 = ttk.Frame(bb)
-        b2['padding'] = (15,0)
+        b2['padding'] = (padx,0)
         b2.grid(row=1, column=1, sticky=tk.EW, padx=0, pady=0)
         wid = tk.Label(b2, text="Tilt:")
         wid.grid(row=0, column=0, sticky=tk.E, padx=0, pady=0)
@@ -353,7 +354,7 @@ class Gui(tk.Tk):
         self.tilt_status.grid(row=0, column=1, sticky=tk.W, padx=0, pady=0)
 
         b3 = ttk.Frame(bb)
-        b3['padding'] = (15,0)
+        b3['padding'] = (padx,0)
         b3.grid(row=1, column=2, sticky=tk.EW, padx=0, pady=0)
         wid = tk.Label(b3, text="Zoom:")
         wid.grid(row=0, column=0, sticky=tk.E, padx=0, pady=0)
@@ -369,7 +370,7 @@ class Gui(tk.Tk):
         '''
         frame = ttk.Frame(parent)
 
-        padx = 10
+        padx = 20
         wid = tk.Button(frame, text='New', command=self.new_callback)
         ToolTip(wid, delay=0.25, msg='Create a new preset from the current\nstate with a new name.')
         wid.grid(row=0, column=0, padx=padx, pady=0)
@@ -490,7 +491,7 @@ class Gui(tk.Tk):
             self.cfg.save()
 
     def up_button(self):
-        self.internal_status['tilt'] = self.internal_status['tilt'] + int(self.movement_increment.get())
+        self.internal_status['tilt'] = self.internal_status['tilt'] - int(self.movement_increment.get())
         if self.internal_status['tilt'] < 0:
             self.internal_status['tilt'] = 0
         self.cam.set_pos(self.internal_status['pan'], self.internal_status['tilt'])
@@ -498,7 +499,7 @@ class Gui(tk.Tk):
         #print("up")
 
     def down_button(self):
-        self.internal_status['tilt'] = self.internal_status['tilt'] - int(self.movement_increment.get())
+        self.internal_status['tilt'] = self.internal_status['tilt'] + int(self.movement_increment.get())
         if self.internal_status['tilt'] > MAX_TILT:
             self.internal_status['tilt'] = MAX_TILT
         self.cam.set_pos(self.internal_status['pan'], self.internal_status['tilt'])

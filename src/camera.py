@@ -205,14 +205,14 @@ class Camera:
         '''
         Internal use only.
         '''
-        #print("send: ", self.link.in_waiting, ", ", self.link.out_waiting)
+        print("send:", self.link.in_waiting, ",", self.link.out_waiting)
         # Sometimes the camera sends a push message that is not a response to
         # a message that we sent. This eats those safely.
         if self.link.in_waiting != 0:
             m = self.receive_message(self.link.in_waiting)
-            #self.print_msg(m)
+            self.print_msg(m)
 
-        #self.print_msg(data)
+        self.print_msg(data)
         for b in data:
             self.link.write(b)
         self.link.flush()
@@ -227,7 +227,7 @@ class Camera:
         '''
         Internal use only.
         '''
-        #print("receive: ", self.link.in_waiting, ", ", self.link.out_waiting)
+        print("receive:", self.link.in_waiting, ",", self.link.out_waiting)
         x = []
         v = 0
         while self.link.in_waiting < siz:
@@ -237,7 +237,7 @@ class Camera:
             v = self.link.read(1)
             x.append(v)
 
-        #self.print_msg(x)
+        self.print_msg(x)
         return x
 
     # Check for an error and raise an exception if one has taken place.
