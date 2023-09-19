@@ -14,7 +14,7 @@ class NewDialog(tk.Toplevel):
     def __init__(self, master, *args):
         tk.Toplevel.__init__(self, master, *args)
         self.title('New Preset')
-        self.geometry('150x150')
+        #self.geometry('150x150')
         self.resizable(False, False)
         self.grab_set()
 
@@ -507,7 +507,7 @@ class Gui(tk.Tk):
         #print("down")
 
     def left_button(self):
-        self.internal_status['pan'] = self.internal_status['pan'] + int(self.movement_increment.get())
+        self.internal_status['pan'] = self.internal_status['pan'] - int(self.movement_increment.get())
         if self.internal_status['pan'] < 0:
             self.internal_status['pan'] = 0
         self.cam.set_pos(self.internal_status['pan'], self.internal_status['tilt'])
@@ -515,7 +515,7 @@ class Gui(tk.Tk):
         #print("left")
 
     def right_button(self):
-        self.internal_status['pan'] = self.internal_status['pan'] - int(self.movement_increment.get())
+        self.internal_status['pan'] = self.internal_status['pan'] + int(self.movement_increment.get())
         if self.internal_status['pan'] > MAX_PAN:
             self.internal_status['pan'] = MAX_PAN
         self.cam.set_pos(self.internal_status['pan'], self.internal_status['tilt'])

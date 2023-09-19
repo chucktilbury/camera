@@ -7,6 +7,7 @@ fi
 
 rm -f $PROJECT/bin/camera
 pyinstaller --clean --noconfirm --name camera $PROJECT/src/app.py
+pyinstaller --clean --noconfirm --name mkconfig $PROJECT/utils/mkcfg
 cp -r $PROJECT/dist/$PROJ_NAME/* $PROJECT/bin
 $PROJECT/utils/mkcfg -f $PROJECT/bin/camera.cfg -p /dev/ttyUSB0 -c "Default Camera"
 
