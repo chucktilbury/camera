@@ -3,6 +3,7 @@
 
 import serial
 import time
+import sys
 
 SPEED = 0x18
 RESP_DELAY = 0.75
@@ -18,11 +19,75 @@ MIN_ZOOM = 0
 RESET_PAN = 410
 RESET_TILT = 210
 RESET_ZOOM = 0
-'''
-Need to do something about the situation where the value of an input exceeds the
-maximum allowable value.
-'''
 
+class NullCamera:
+    ''' 
+    This class is created when there is no serial port present.
+    For testing only.
+    '''
+
+    def __init__(self, device='/dev/TTYUSB0'):
+        self.in_waiting = False
+        self.device = device
+
+    def reboot(self):
+        return None
+
+    def get_zoom(self):
+        return 1024
+
+    def get_pos(self):
+        return {'pan':50, 'tilt':50}
+
+
+    def get_status(self):
+        '''
+        Return a dictionary with pan, tilt, and zoom values.
+        '''
+        val = self.get_pos()
+        val['zoom'] = self.get_zoom()
+
+        return val
+
+
+    ################################################
+    # Command the camera to do something
+    def reset(self):
+        return None
+
+    def zoom_in(self):
+        return None
+
+    def zoom_out(self):
+        return None
+
+    def move_up(self, pan=SPEED, tilt=SPEED):
+        return None
+
+    def move_down(self, pan=SPEED, tilt=SPEED)        :
+        return None
+
+    def move_left(self, pan=SPEED, tilt=SPEED):
+        return None
+
+    def move_right(self, pan=SPEED, tilt=SPEED):
+        return None
+
+    def move_stop(self):
+        return None
+
+    def set_pos(self, pan, tilt, pspeed=SPEED, tspeed=SPEED):
+        return None
+
+    def set_zoom(self, val):
+        return None
+
+    def set_all(self, pan, tilt, zoom, pspeed=SPEED, tspeed=SPEED):
+        return None
+
+    def get_device(self):
+        return None
+    
 # exception thrown when error = 0x01
 class CameraMessageLengthError(Exception):
     '''
@@ -278,16 +343,23 @@ class Camera:
         Create the camera object.
         '''
         self.device = device
-        self.link = serial.Serial(self.device)
-        self.reset()
-        time.sleep(1)
+        try:
+            self.link = serial.Serial(self.device)
+            self.reset()
+            time.sleep(1)
+        except serial.serialutil.SerialException as e:
+            sys.stderr.write("Camera error: %s\n\n"%(str(e)))
+            sys.exit(1)
 
     def __del__(self):
         '''
         Destroy the camera object.
         '''
-        self.reset()
-        self.link.close()
+        try:
+            self.reset()
+            self.link.close()
+        except Exception:
+            pass
 
     def reboot(self):
         '''

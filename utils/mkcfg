@@ -28,6 +28,10 @@ parser.add_argument('-p', dest="port", default='/dev/ttyUSB0',
 parser.add_argument('-c', dest="cname", default='Default Config', 
                     help="name of the camera to use", 
                     type=str, required=True)
+parser.add_argument('-rp', dest="pan", default=False, action='store_true', 
+                    help="reverse the direction of the left/right movement of the camera")
+parser.add_argument('-rt', dest="tilt", default=False, action='store_true',
+                    help="reverse the direction of the up/down movement of the camera")
 args = parser.parse_args()
 
 if len(sys.argv) > 1:
@@ -38,6 +42,8 @@ else:
 data = {}
 data['cam_name'] = args.cname
 data['cam_port'] = args.port
+data['tilt'] = args.tilt
+data['pan'] = args.pan
 
 data['presets'] = {}
 

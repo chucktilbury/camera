@@ -371,16 +371,16 @@ class Gui(tk.Tk):
         frame = ttk.Frame(parent)
 
         padx = 20
-        wid = tk.Button(frame, text='New', command=self.new_callback)
-        ToolTip(wid, delay=0.25, msg='Create a new preset from the current\nstate with a new name.')
+        wid = tk.Button(frame, text='Save As', command=self.new_callback)
+        ToolTip(wid, delay=0.25, msg='Save the current state of the camera\nwith a new preset name.')
         wid.grid(row=0, column=0, padx=padx, pady=0)
+
+        wid = tk.Button(frame, text='Save', command=self.save_callback)
+        ToolTip(wid, delay=0.25, msg='Save the current state of the camera\nwith the current preset name.')
+        wid.grid(row=0, column=1, padx=padx, pady=0)
 
         wid = tk.Button(frame, text='Delete', command=self.del_callback)
         ToolTip(wid, delay=0.25, msg='Delete the current preset.')
-        wid.grid(row=0, column=1, padx=padx, pady=0)
-
-        wid = tk.Button(frame, text='Save', command=self.save_callback)
-        ToolTip(wid, delay=0.25, msg='Save the current state of the camera into the\ncurrent preset name.')
         wid.grid(row=0, column=2, padx=padx, pady=0)
 
         wid = tk.Button(frame, text='Quit', command=self.quit_button)
@@ -491,7 +491,11 @@ class Gui(tk.Tk):
             self.cfg.save()
 
     def up_button(self):
-        self.internal_status['tilt'] = self.internal_status['tilt'] - int(self.movement_increment.get())
+        if self.cfg.data['tilt']:
+            self.internal_status['tilt'] = self.internal_status['tilt'] + int(self.movement_increment.get())
+        else:
+            self.internal_status['tilt'] = self.internal_status['tilt'] - int(self.movement_increment.get())
+
         if self.internal_status['tilt'] < 0:
             self.internal_status['tilt'] = 0
         self.cam.set_pos(self.internal_status['pan'], self.internal_status['tilt'])
@@ -499,7 +503,11 @@ class Gui(tk.Tk):
         #print("up")
 
     def down_button(self):
-        self.internal_status['tilt'] = self.internal_status['tilt'] + int(self.movement_increment.get())
+        if self.cfg.data['tilt']:
+            self.internal_status['tilt'] = self.internal_status['tilt'] - int(self.movement_increment.get())
+        else:
+            self.internal_status['tilt'] = self.internal_status['tilt'] + int(self.movement_increment.get())
+
         if self.internal_status['tilt'] > MAX_TILT:
             self.internal_status['tilt'] = MAX_TILT
         self.cam.set_pos(self.internal_status['pan'], self.internal_status['tilt'])
@@ -507,7 +515,11 @@ class Gui(tk.Tk):
         #print("down")
 
     def left_button(self):
-        self.internal_status['pan'] = self.internal_status['pan'] - int(self.movement_increment.get())
+        if self.cfg.data['pan']:
+            self.internal_status['pan'] = self.internal_status['pan'] + int(self.movement_increment.get())
+        else:
+            self.internal_status['pan'] = self.internal_status['pan'] - int(self.movement_increment.get())
+
         if self.internal_status['pan'] < 0:
             self.internal_status['pan'] = 0
         self.cam.set_pos(self.internal_status['pan'], self.internal_status['tilt'])
@@ -515,7 +527,11 @@ class Gui(tk.Tk):
         #print("left")
 
     def right_button(self):
-        self.internal_status['pan'] = self.internal_status['pan'] + int(self.movement_increment.get())
+        if self.cfg.data['pan']:
+            self.internal_status['pan'] = self.internal_status['pan'] - int(self.movement_increment.get())
+        else:
+            self.internal_status['pan'] = self.internal_status['pan'] + int(self.movement_increment.get())
+
         if self.internal_status['pan'] > MAX_PAN:
             self.internal_status['pan'] = MAX_PAN
         self.cam.set_pos(self.internal_status['pan'], self.internal_status['tilt'])
